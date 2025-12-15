@@ -223,6 +223,7 @@
           <div><b>Notes de compatibilitat</b></div>
           <div>• Normalització: <b>:</b> → <b>ː</b>, <b>g</b> → <b>ɡ</b>, treu <b>͡</b>, i accepta <b>l.l</b> com <b>lː</b>.</div>
           <div>• Si el navegador bloqueja peticions en <b>file://</b>, obre amb un servidor local (ex. <b>python -m http.server 8000</b>).</div>
+          <div>• Si vens de versions anteriors i tens comportaments estranys: esborra el localStorage (wyzer_*).</div>
         </div>
       </div>
     </section>
@@ -241,454 +242,537 @@
   </main>
 
   <script>
-    // =========================
-    //  Teclat IPA (Català)
-    // =========================
-    const KEYS_DIAC = ["ˈ","ˌ","ː","̆","·","͡",".","‿","-","̃","̥","̬","(",")","[","]","/","/","␠"];
-    const KEYS_VOWELS = ["a","ə","e","ɛ","i","o","ɔ","u"];
-    const KEYS_CONS_CORE = [
-      "p","b","t","d","k","ɡ",
-      "f","v","s","z","ʃ","ʒ",
-      "t͡s","d͡z","t͡ʃ","d͡ʒ",
-      "m","n","ɲ","ŋ",
-      "l","ɫ","ʎ","lː",
-      "ɾ","r",
-      "j","w"
-    ];
-    const KEYS_CONS_EXT = [
-      "ɱ",      // m amb cua
-      "β","ð","ɣ",
-      "x","h",
-      "ʝ",
-      "tɕ","dʑ",
-      "ʔ"
-    ];
-    const KEYS_CTRL = ["⌫","DEL","CLR","OK"];
-    const ALL_KEYS = [...KEYS_DIAC, ...KEYS_VOWELS, ...KEYS_CONS_CORE, ...KEYS_CONS_EXT, ...KEYS_CTRL];
+    document.addEventListener("DOMContentLoaded", () => {
 
-    const kbGrid = document.getElementById("kb");
-    const ansEl  = document.getElementById("answer");
+      // =========================
+      //  Teclat IPA (Català)
+      // =========================
+      const KEYS_DIAC = ["ˈ","ˌ","ː","̆","·","͡",".","‿","-","̃","̥","̬","(",")","[","]","/","/","␠"];
+      const KEYS_VOWELS = ["a","ə","e","ɛ","i","o","ɔ","u"];
+      const KEYS_CONS_CORE = [
+        "p","b","t","d","k","ɡ",
+        "f","v","s","z","ʃ","ʒ",
+        "t͡s","d͡z","t͡ʃ","d͡ʒ",
+        "m","n","ɲ","ŋ",
+        "l","ɫ","ʎ","lː",
+        "ɾ","r",
+        "j","w"
+      ];
+      const KEYS_CONS_EXT = ["ɱ","β","ð","ɣ","x","h","ʝ","tɕ","dʑ","ʔ"];
+      const KEYS_CTRL = ["⌫","DEL","CLR","OK"];
+      const ALL_KEYS = [...KEYS_DIAC, ...KEYS_VOWELS, ...KEYS_CONS_CORE, ...KEYS_CONS_EXT, ...KEYS_CTRL];
 
-    function insertAtCursor(el, text){
-      el.focus();
-      const start = el.selectionStart ?? el.value.length;
-      const end   = el.selectionEnd ?? el.value.length;
-      el.value = el.value.slice(0, start) + text + el.value.slice(end);
-      const pos = start + text.length;
-      el.setSelectionRange(pos, pos);
-    }
-    function backspaceAtCursor(el){
-      const start = el.selectionStart ?? el.value.length;
-      const end   = el.selectionEnd ?? el.value.length;
-      if (start !== end){
-        el.value = el.value.slice(0,start) + el.value.slice(end);
-        el.setSelectionRange(start, start);
+      const kbGrid = document.getElementById("kb");
+      const ansEl  = document.getElementById("answer");
+
+      function insertAtCursor(el, text){
         el.focus();
-        return;
+        const start = el.selectionStart ?? el.value.length;
+        const end   = el.selectionEnd ?? el.value.length;
+        el.value = el.value.slice(0, start) + text + el.value.slice(end);
+        const pos = start + text.length;
+        el.setSelectionRange(pos, pos);
       }
-      if (start <= 0) return;
-      el.value = el.value.slice(0, start - 1) + el.value.slice(start);
-      el.setSelectionRange(start - 1, start - 1);
-      el.focus();
-    }
-    function buildKeyboard(){
-      kbGrid.innerHTML = "";
-      for (const k of ALL_KEYS){
-        const btn = document.createElement("div");
-        btn.className = "key";
-        btn.textContent = k;
-        if (k === "⌫" || k === "DEL" || k === "CLR" || k === "OK") btn.classList.add("keyWide");
+      function backspaceAtCursor(el){
+        const start = el.selectionStart ?? el.value.length;
+        const end   = el.selectionEnd ?? el.value.length;
+        if (start !== end){
+          el.value = el.value.slice(0,start) + el.value.slice(end);
+          el.setSelectionRange(start, start);
+          el.focus();
+          return;
+        }
+        if (start <= 0) return;
+        el.value = el.value.slice(0, start - 1) + el.value.slice(start);
+        el.setSelectionRange(start - 1, start - 1);
+        el.focus();
+      }
+      function buildKeyboard(){
+        if (!kbGrid) return;
+        kbGrid.innerHTML = "";
+        for (const k of ALL_KEYS){
+          const btn = document.createElement("div");
+          btn.className = "key";
+          btn.textContent = k;
+          if (k === "⌫" || k === "DEL" || k === "CLR" || k === "OK") btn.classList.add("keyWide");
 
-        btn.addEventListener("click", ()=>{
-          if (k === "⌫") return backspaceAtCursor(ansEl);
-          if (k === "DEL") {
-            const s = ansEl.selectionStart ?? ansEl.value.length;
-            const e = ansEl.selectionEnd ?? ansEl.value.length;
-            if (s !== e){
-              ansEl.value = ansEl.value.slice(0,s) + ansEl.value.slice(e);
-              ansEl.setSelectionRange(s,s);
+          btn.addEventListener("click", ()=>{
+            if (k === "⌫") return backspaceAtCursor(ansEl);
+            if (k === "DEL") {
+              const s = ansEl.selectionStart ?? ansEl.value.length;
+              const e = ansEl.selectionEnd ?? ansEl.value.length;
+              if (s !== e){
+                ansEl.value = ansEl.value.slice(0,s) + ansEl.value.slice(e);
+                ansEl.setSelectionRange(s,s);
+              }
+              ansEl.focus();
+              return;
             }
-            ansEl.focus();
-            return;
-          }
-          if (k === "CLR") { ansEl.value=""; ansEl.focus(); return; }
-          if (k === "OK")  { check(); return; }
-          if (k === "␠") return insertAtCursor(ansEl, " ");
-          insertAtCursor(ansEl, k);
-        });
+            if (k === "CLR") { ansEl.value=""; ansEl.focus(); return; }
+            if (k === "OK")  { check(); return; }
+            if (k === "␠") return insertAtCursor(ansEl, " ");
+            insertAtCursor(ansEl, k);
+          });
 
-        kbGrid.appendChild(btn);
-      }
-    }
-    buildKeyboard();
-
-    // =========================
-    //  Paraules reals + pool
-    // =========================
-    const WORDS_URL = "https://raw.githubusercontent.com/hermitdave/FrequencyWords/master/content/2016/ca/ca_50k.txt";
-    const FALLBACK_WORDS = [
-      "català","llengua","paral·lel","intel·ligència","pel·lícula","col·legi","formatge","taronja","finestra","biblioteca",
-      "història","memòria","filosofia","ciència","matemàtiques","derivada","examen","professora","dialecte","fonètica",
-      "terra","muntanya","mar","temps","carrer","escola","ciutat","poble","amistat","estudiar",
-      "encendre","encobreixen","dividirem","resposta","consell","correcte","paraula","transcripció","vocal","consonant","accent"
-    ];
-
-    const wordEl = document.getElementById("word");
-    const wordMeta = document.getElementById("wordMeta");
-    const statusEl = document.getElementById("status");
-    const wordsPill = document.getElementById("wordsPill");
-    const poolPill = document.getElementById("poolPill");
-
-    let words = [];
-    let pool = [];
-    let currentWord = null;
-
-    function filterWord(w){
-      // Evitem guions, apòstrofs, números... per fer-ho “net” per practicar
-      // Acceptem el punt volat (·)
-      return /^[a-zàèéíïòóúüç·]+$/i.test(w);
-    }
-
-    async function loadWords(){
-      // cache localStorage per no tornar a baixar sempre
-      try{
-        const cached = localStorage.getItem("wyzer_ca_words_50k_v2");
-        if (cached){
-          const arr = JSON.parse(cached);
-          if (Array.isArray(arr) && arr.length > 10000){
-            words = arr;
-            wordsPill.textContent = `Paraules: ${words.length.toLocaleString("ca-ES")}`;
-            return;
-          }
+          kbGrid.appendChild(btn);
         }
-      } catch {}
+      }
+      buildKeyboard();
 
-      statusEl.className = "status warn";
-      statusEl.textContent = "Descarregant llista de paraules (50k)…";
+      // =========================
+      //  Paraules reals + pool
+      // =========================
+      const WORDS_URL = "https://raw.githubusercontent.com/hermitdave/FrequencyWords/master/content/2016/ca/ca_50k.txt";
+      const FALLBACK_WORDS = [
+        "català","llengua","paral·lel","intel·ligència","pel·lícula","col·legi","formatge","taronja","finestra","biblioteca",
+        "història","memòria","filosofia","ciència","matemàtiques","derivada","examen","professora","dialecte","fonètica",
+        "terra","muntanya","mar","temps","carrer","escola","ciutat","poble","amistat","estudiar",
+        "encendre","encobreixen","dividirem","resposta","consell","correcte","paraula","transcripció","vocal","consonant","accent"
+      ];
 
-      try{
-        const r = await fetch(WORDS_URL, { cache:"force-cache" });
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        const txt = await r.text();
-        const out = [];
-        for (const line of txt.split("\n")){
-          const t = line.trim();
-          if (!t) continue;
-          const token = t.split(/\s+/)[0]?.toLowerCase();
-          if (token && filterWord(token)) out.push(token);
+      const wordEl = document.getElementById("word");
+      const wordMeta = document.getElementById("wordMeta");
+      const statusEl = document.getElementById("status");
+      const wordsPill = document.getElementById("wordsPill");
+      const poolPill = document.getElementById("poolPill");
+
+      let words = [];
+      let pool = [];
+      let currentWord = null;
+      let currentIPA = null; // IMPORTANT: IPA ja validada per a la paraula actual
+
+      function filterWord(w){
+        // net: lletres + diacrítics catalans + punt volat
+        return /^[a-zàèéíïòóúüç·]+$/i.test(w);
+      }
+
+      // =========================
+      //  Caches: IPA + GOOD/BAD words
+      // =========================
+      const ipaCacheKey = "wyzer_ipa_cache_v2";
+      const goodWordsKey = "wyzer_good_words_v1";
+      const badWordsKey  = "wyzer_bad_words_v1";
+
+      let ipaCache = {};
+      let goodSet = new Set();
+      let badSet  = new Set();
+
+      try { ipaCache = JSON.parse(localStorage.getItem(ipaCacheKey) || "{}"); } catch { ipaCache = {}; }
+      try { goodSet = new Set(JSON.parse(localStorage.getItem(goodWordsKey) || "[]")); } catch { goodSet = new Set(); }
+      try { badSet  = new Set(JSON.parse(localStorage.getItem(badWordsKey)  || "[]")); } catch { badSet  = new Set(); }
+
+      function saveSets(){
+        // límits perquè no creixi infinit
+        const goodArr = Array.from(goodSet);
+        const badArr  = Array.from(badSet);
+        if (goodArr.length > 12000) goodArr.splice(0, goodArr.length - 12000);
+        if (badArr.length  > 12000) badArr.splice(0, badArr.length - 12000);
+        localStorage.setItem(goodWordsKey, JSON.stringify(goodArr));
+        localStorage.setItem(badWordsKey, JSON.stringify(badArr));
+      }
+
+      function cacheGet(key){ return ipaCache[key] ?? null; }
+      function cacheSet(key, val){
+        ipaCache[key] = val;
+        const keys = Object.keys(ipaCache);
+        if (keys.length > 7000){
+          for (let i=0;i<1200;i++) delete ipaCache[keys[i]];
         }
-        words = Array.from(new Set(out));
-        localStorage.setItem("wyzer_ca_words_50k_v2", JSON.stringify(words));
-        wordsPill.textContent = `Paraules: ${words.length.toLocaleString("ca-ES")}`;
-      } catch {
-        words = Array.from(new Set(FALLBACK_WORDS));
-        wordsPill.textContent = `Paraules: ${words.length.toLocaleString("ca-ES")} (fallback)`;
-        statusEl.className = "status warn";
-        statusEl.textContent = "No he pogut descarregar 50k. Mode fallback activat.";
-      }
-    }
-
-    function resetPool(){
-      const minLen = Number(document.getElementById("minLen").value || 4);
-      pool = words.filter(w => w.length >= minLen);
-      poolPill.textContent = `Pool: ${pool.length.toLocaleString("ca-ES")}`;
-    }
-    function pickRandomFromPool(){
-      if (!pool.length) return null;
-      const i = Math.floor(Math.random() * pool.length);
-      const w = pool[i];
-      pool[i] = pool[pool.length - 1];
-      pool.pop();
-      poolPill.textContent = `Pool: ${pool.length.toLocaleString("ca-ES")}`;
-      return w;
-    }
-    function setWord(w){
-      currentWord = w;
-      wordEl.textContent = w;
-      wordMeta.textContent = `Lletres: ${w.length} · (sense repetició)`;
-      ansEl.value = "";
-      statusEl.className = "status";
-      statusEl.textContent = "Escriu la transcripció i prem “Corregir”.";
-    }
-    function nextWord(){
-      const w = pickRandomFromPool();
-      if (!w){
-        statusEl.className = "status warn";
-        statusEl.textContent = "Has esgotat el pool. Prem “Reinicia pool”.";
-        currentWord = null;
-        wordEl.textContent = "—";
-        wordMeta.textContent = "—";
-        return;
-      }
-      setWord(w);
-    }
-
-    // =========================
-    //  IPA real via Wiktionary ca-IPA
-    // =========================
-    const WIKI_API = "https://en.wiktionary.org/w/api.php";
-
-    const ipaCacheKey = "wyzer_ipa_cache_v1";
-    let ipaCache = {};
-    try { ipaCache = JSON.parse(localStorage.getItem(ipaCacheKey) || "{}"); } catch { ipaCache = {}; }
-
-    function cacheGet(key){ return ipaCache[key] || null; }
-    function cacheSet(key, val){
-      ipaCache[key] = val;
-      // evitem que creixi infinit
-      const keys = Object.keys(ipaCache);
-      if (keys.length > 5000){
-        for (let i=0;i<1000;i++) delete ipaCache[keys[i]];
-      }
-      localStorage.setItem(ipaCacheKey, JSON.stringify(ipaCache));
-    }
-
-    async function wiktionaryCaIPA(word){
-      // Parseja la plantilla: {{ca-IPA|WORD}}
-      // (CORS amb origin=*) :contentReference[oaicite:1]{index=1}
-      const text = `{{ca-IPA|${word}}}`;
-      const url = `${WIKI_API}?action=parse&format=json&origin=*&prop=text&text=${encodeURIComponent(text)}`;
-      const r = await fetch(url);
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      const j = await r.json();
-      const html = j?.parse?.text?.["*"];
-      if (!html) throw new Error("Resposta buida del motor ca-IPA");
-
-      const tmp = document.createElement("div");
-      tmp.innerHTML = html;
-
-      // normalment hi ha 1 o 2 span.IPA
-      const spans = Array.from(tmp.querySelectorAll(".IPA"));
-      const ipas = spans.map(s => (s.textContent || "").trim()).filter(Boolean);
-
-      if (!ipas.length) throw new Error("No he trobat cap IPA a la resposta (span.IPA)");
-
-      // intent: primera = orientals, segona = valencià (com a l’exemple del template) :contentReference[oaicite:2]{index=2}
-      const east = ipas[0];
-      const val  = ipas[1] || null;
-
-      return { east, val };
-    }
-
-    async function getIPA(word){
-      const key = `caipa:${word}`;
-      const cached = cacheGet(key);
-      if (cached) return cached;
-
-      const res = await wiktionaryCaIPA(word);
-      cacheSet(key, res);
-      return res;
-    }
-
-    // =========================
-    //  Normalització + consells
-    // =========================
-    function normalizeForCompare(s, ignoreSyllables){
-      let out = (s ?? "").normalize("NFC").replace(/\u200B/g,"").replace(/\u00A0/g," ").trim();
-
-      // Treu [] o // si l’usuari les posa
-      out = out.replace(/^\s*\[|\]\s*$/g,"").replace(/^\s*\/|\/\s*$/g,"");
-
-      // Normalitzacions típiques
-      out = out.replace(/:/g,"ː");        // llargada
-      out = out.replace(/g/g,"ɡ");        // g tipogràfica vs ɡ
-      out = out.replace(/\u0361/g,"");    // lligadura ͡
-      out = out.replace(/l\.l/g,"lː");    // ela geminada alternativa
-
-      // compacta afrikades
-      out = out.replace(/t͡ʃ/g,"tʃ").replace(/d͡ʒ/g,"dʒ").replace(/t͡s/g,"ts").replace(/d͡z/g,"dz");
-
-      if (ignoreSyllables) out = out.replace(/[.\-‿\s]/g, "");
-      else out = out.replace(/\s+/g,"");
-
-      return out.toLowerCase();
-    }
-
-    function stripStress(s){ return s.replace(/[ˈˌ]/g,""); }
-
-    function firstMismatch(a, b){
-      const n = Math.min(a.length, b.length);
-      for (let i=0;i<n;i++) if (a[i] !== b[i]) return i;
-      if (a.length !== b.length) return n;
-      return -1;
-    }
-
-    function detectMistakes(userN, expN){
-      const tips = [];
-
-      // 1) Stress
-      if (stripStress(userN) === stripStress(expN) && userN !== expN){
-        tips.push("Sembla que només falla l’ACCENT TÒNIC: posa ˈ (i/o ˌ) al lloc correcte.");
+        localStorage.setItem(ipaCacheKey, JSON.stringify(ipaCache));
       }
 
-      // 2) e/ɛ
-      if (expN.includes("ɛ") && userN.includes("e") && !userN.includes("ɛ")) tips.push("Vigila e/ɛ: si la solució porta ɛ, no és una e tancada.");
-      if (expN.includes("e") && userN.includes("ɛ") && !userN.includes("e")) tips.push("Vigila e/ɛ: potser has obert una e que hauria de ser e.");
-
-      // 3) o/ɔ
-      if (expN.includes("ɔ") && userN.includes("o") && !userN.includes("ɔ")) tips.push("Vigila o/ɔ: si la solució porta ɔ, no és una o tancada.");
-      if (expN.includes("o") && userN.includes("ɔ") && !userN.includes("o")) tips.push("Vigila o/ɔ: potser has obert una o que hauria de ser o.");
-
-      // 4) schwa
-      if (expN.includes("ə") && !userN.includes("ə")) tips.push("Falta alguna ə (vocal neutra): sovint apareix en síl·labes àtones (català oriental).");
-      if (!expN.includes("ə") && userN.includes("ə")) tips.push("Has posat alguna ə però la solució no en porta (potser és valencià o una vocal plena).");
-
-      // 5) r/ɾ
-      if (expN.includes("ɾ") && userN.includes("r") && !userN.includes("ɾ")) tips.push("Vibrant simple: sovint és ɾ (no r) en posició intervocàlica.");
-      if (expN.includes("r") && userN.includes("ɾ") && !userN.includes("r")) tips.push("Vibrant múltiple: aquí sembla r (no ɾ).");
-
-      // 6) l·l
-      if (expN.includes("lː") && (userN.includes("l") && !userN.includes("lː"))) tips.push("Ela geminada: prova lː (també acceptem l.l).");
-
-      // 7) sibilants
-      if (expN.includes("ʃ") && userN.includes("s") && !userN.includes("ʃ")) tips.push("Atenció s/ʃ: en aquest punt sona com ʃ (x).");
-      if (expN.includes("ʒ") && userN.includes("z") && !userN.includes("ʒ")) tips.push("Atenció z/ʒ: aquí és ʒ (j/ig).");
-
-      return tips;
-    }
-
-    function explainDiff(userRaw, expRaw, ignoreSyllables){
-      const tips = [];
-
-      const uN = normalizeForCompare(userRaw, ignoreSyllables);
-      const eN = normalizeForCompare(expRaw, ignoreSyllables);
-
-      if (ignoreSyllables) tips.push("No es penalitzen punts (.), guions (-), lligadures (͡) ni espais.");
-
-      const idx = firstMismatch(uN, eN);
-      if (idx >= 0){
-        tips.push(`Primera diferència al caràcter ${idx+1}: tu «${uN[idx] ?? "∅"}», s’espera «${eN[idx] ?? "∅"}».`);
-      }
-      if (uN.length !== eN.length){
-        tips.push(`Longitud diferent: teva (${uN.length}) vs esperada (${eN.length}).`);
-      }
-
-      tips.push(...detectMistakes(uN, eN));
-
-      if (!tips.length){
-        tips.push("Revisa l’accent tònic (ˈ), les vocals (ə/ɛ/ɔ) i r/ɾ.");
-      }
-      return tips;
-    }
-
-    // =========================
-    //  UI / accions
-    // =========================
-    const btnCorrect = document.getElementById("btnCorrect");
-    const btnReveal  = document.getElementById("btnReveal");
-    const btnNext    = document.getElementById("btnNext");
-    const btnReset   = document.getElementById("btnReset");
-    const btnClear   = document.getElementById("btnClear");
-    const dialectEl  = document.getElementById("dialect");
-
-    function escapeHtml(s){
-      return String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[c]));
-    }
-
-    function pickSolution(ipaObj){
-      const mode = dialectEl.value;
-      if (mode === "east") return { label: "Central/Balear", ipa: ipaObj.east, extra: ipaObj.val ? {label:"Valencià", ipa: ipaObj.val} : null };
-      if (mode === "val")  return { label: "Valencià", ipa: ipaObj.val || ipaObj.east, extra: ipaObj.val ? null : {label:"(No hi havia variant val.)", ipa: ipaObj.east} };
-      return { label: "Central/Balear", ipa: ipaObj.east, extra: ipaObj.val ? {label:"Valencià", ipa: ipaObj.val} : null };
-    }
-
-    async function reveal(){
-      if (!currentWord){
-        statusEl.className = "status warn";
-        statusEl.textContent = "Primer prem “Següent”.";
-        return;
-      }
-      btnCorrect.disabled = btnReveal.disabled = btnNext.disabled = true;
-      statusEl.className = "status warn";
-      statusEl.textContent = "Obtenint solució (Wiktionary ca-IPA)…";
-
-      try{
-        const ipaObj = await getIPA(currentWord);
-        const sol = pickSolution(ipaObj);
-
-        let msg = `Solució (${sol.label}): ${sol.ipa}`;
-        if (dialectEl.value === "both" && sol.extra) msg += `\nSolució (${sol.extra.label}): ${sol.extra.ipa}`;
+      async function loadWords(){
+        try{
+          const cached = localStorage.getItem("wyzer_ca_words_50k_v2");
+          if (cached){
+            const arr = JSON.parse(cached);
+            if (Array.isArray(arr) && arr.length > 10000){
+              words = arr;
+              wordsPill.textContent = `Paraules: ${words.length.toLocaleString("ca-ES")}`;
+              return;
+            }
+          }
+        } catch {}
 
         statusEl.className = "status warn";
-        statusEl.textContent = msg;
-      } catch (e){
-        statusEl.className = "status bad";
-        statusEl.textContent = `Error en generar la solució: ${e?.message ?? e}\n\nTip: si estàs en file://, prova amb servidor local (python -m http.server 8000).`;
-      } finally {
-        btnCorrect.disabled = btnReveal.disabled = btnNext.disabled = false;
+        statusEl.textContent = "Descarregant llista de paraules (50k)…";
+
+        try{
+          const r = await fetch(WORDS_URL, { cache:"force-cache" });
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          const txt = await r.text();
+          const out = [];
+          for (const line of txt.split("\n")){
+            const t = line.trim();
+            if (!t) continue;
+            const token = t.split(/\s+/)[0]?.toLowerCase();
+            if (token && filterWord(token)) out.push(token);
+          }
+          words = Array.from(new Set(out));
+          localStorage.setItem("wyzer_ca_words_50k_v2", JSON.stringify(words));
+          wordsPill.textContent = `Paraules: ${words.length.toLocaleString("ca-ES")}`;
+        } catch {
+          words = Array.from(new Set(FALLBACK_WORDS));
+          wordsPill.textContent = `Paraules: ${words.length.toLocaleString("ca-ES")} (fallback)`;
+          statusEl.className = "status warn";
+          statusEl.textContent = "No he pogut descarregar 50k. Mode fallback activat.";
+        }
       }
-    }
 
-    async function check(){
-      if (!currentWord){
-        statusEl.className = "status warn";
-        statusEl.textContent = "Primer prem “Següent”.";
-        return;
-      }
-      const userRaw = ansEl.value;
-      if (!userRaw.trim()){
-        statusEl.className = "status warn";
-        statusEl.textContent = "Escriu alguna cosa abans de corregir.";
-        return;
-      }
+      function buildPool(){
+        const minLen = Number(document.getElementById("minLen").value || 4);
 
-      const ignoreSyll = document.getElementById("ignoreSyll").checked;
+        // Si ja tens un bon “diccionari” de paraules corregibles, el fem servir.
+        const curated = (goodSet.size >= 800);
+        const base = curated ? Array.from(goodSet) : words;
 
-      btnCorrect.disabled = btnReveal.disabled = btnNext.disabled = true;
-      statusEl.className = "status warn";
-      statusEl.textContent = "Generant solució (Wiktionary ca-IPA)…";
+        const filtered = base.filter(w => w.length >= minLen && filterWord(w) && !badSet.has(w));
 
-      try{
-        const ipaObj = await getIPA(currentWord);
-        const sol = pickSolution(ipaObj);
-
-        // per comparar, usem la solució principal
-        const expRaw = sol.ipa;
-
-        const uN = normalizeForCompare(userRaw, ignoreSyll);
-        const eN = normalizeForCompare(expRaw, ignoreSyll);
-
-        if (uN === eN){
-          let okMsg = `✅ Correcte!\nSolució (${sol.label}): ${expRaw}`;
-          if (dialectEl.value === "both" && sol.extra) okMsg += `\nSolució (${sol.extra.label}): ${sol.extra.ipa}`;
-          statusEl.className = "status ok";
-          statusEl.textContent = okMsg;
+        // Si curated és massa petit per aquesta minLen, completem amb paraules noves (per descobrir-ne més).
+        if (curated && filtered.length < 400){
+          const extra = words
+            .filter(w => w.length >= minLen && filterWord(w) && !badSet.has(w))
+            .slice(0, 6000);
+          const mix = Array.from(new Set([...filtered, ...extra]));
+          pool = mix;
+          poolPill.textContent = `Pool: ${pool.length.toLocaleString("ca-ES")} (mix)`;
         } else {
-          const tips = explainDiff(userRaw, expRaw, ignoreSyll);
-          let msg = `❌ No coincideix.\nSolució (${sol.label}): ${expRaw}`;
-          if (dialectEl.value === "both" && sol.extra) msg += `\nSolució (${sol.extra.label}): ${sol.extra.ipa}`;
-          msg += `\n\nConsells:\n- ${tips.join("\n- ")}`;
-          statusEl.className = "status bad";
+          pool = filtered;
+          poolPill.textContent = curated
+            ? `Pool: ${pool.length.toLocaleString("ca-ES")} (corregibles)`
+            : `Pool: ${pool.length.toLocaleString("ca-ES")}`;
+        }
+      }
+
+      function pickRandomFromPool(){
+        if (!pool.length) return null;
+        const i = Math.floor(Math.random() * pool.length);
+        const w = pool[i];
+        pool[i] = pool[pool.length - 1];
+        pool.pop();
+        poolPill.textContent = poolPill.textContent.replace(/Pool:\s.*$/, `Pool: ${pool.length.toLocaleString("ca-ES")}`) || `Pool: ${pool.length.toLocaleString("ca-ES")}`;
+        return w;
+      }
+
+      function setWord(w){
+        currentWord = w;
+        wordEl.textContent = w;
+        wordMeta.textContent = `Lletres: ${w.length} · (sense repetició)`;
+        ansEl.value = "";
+        statusEl.className = "status";
+        statusEl.textContent = "Escriu la transcripció i prem “Corregir”.";
+      }
+
+      // =========================
+      //  Wiktionary ca-IPA (robust)
+      // =========================
+      const WIKI_API = "https://en.wiktionary.org/w/api.php";
+
+      function cleanIPA(s){
+        return String(s || "").replace(/\s+/g," ").trim();
+      }
+
+      function isValidIPA(s){
+        const t = cleanIPA(s);
+        if (!t) return false;
+        // evita el “vary-revision-sha1”
+        if (/vary|revision|sha1/i.test(t)) return false;
+        if (/lua error/i.test(t)) return false;
+
+        const inner = t.replace(/^[\/\[\(]\s*/,"").replace(/\s*[\/\]\)]$/,"");
+
+        // ha de tenir algun “marcador” típic IPA (com a mínim accent tònic o símbol especial)
+        if (!/[ˈˌːəɛɔɲŋʎʃʒɾɡɫβðɣʝʔɱ]/.test(inner)) return false;
+
+        // caràcters permesos (IPA + diacrítics + separadors)
+        const allowed = /^[\/\[\(]?[a-zA-Zàèéíïòóúüçəɛɔɲŋʎʃʒɾɡɫβðɣʝʔɱˈˌː.‿ \-()̥̬̃̆͡·]+[\/\]\)]?$/;
+        if (!allowed.test(t)) return false;
+
+        return true;
+      }
+
+      async function wiktionaryCaIPA(word){
+        const text = `{{ca-IPA|${word}}}`;
+        const url = `${WIKI_API}?action=parse&format=json&origin=*&prop=text&text=${encodeURIComponent(text)}`;
+        const r = await fetch(url);
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const j = await r.json();
+        const html = j?.parse?.text?.["*"];
+        if (!html) throw new Error("Resposta buida del motor ca-IPA");
+
+        // Si el mòdul peta (ambigüitat, etc.), Wiktionary retorna text amb “Lua error…”
+        if (/Lua error/i.test(html)){
+          throw new Error("Motor ca-IPA: paraula ambigua o no resoluble (Lua error).");
+        }
+
+        const tmp = document.createElement("div");
+        tmp.innerHTML = html;
+
+        const spans = Array.from(tmp.querySelectorAll(".IPA"));
+        const raw = spans.map(s => cleanIPA(s.textContent || "")).filter(Boolean);
+
+        const ipas = raw.filter(isValidIPA);
+        if (!ipas.length) throw new Error("No he trobat cap IPA a la resposta (span.IPA)");
+
+        const east = ipas[0];
+        const val  = ipas[1] || null;
+        return { east, val };
+      }
+
+      async function getIPA(word){
+        const key = `caipa:${word}`;
+        const cached = cacheGet(key);
+        if (cached) return cached;
+        const res = await wiktionaryCaIPA(word);
+        cacheSet(key, res);
+        return res;
+      }
+
+      // =========================
+      //  Normalització + consells
+      // =========================
+      function normalizeForCompare(s, ignoreSyllables){
+        let out = (s ?? "").normalize("NFC").replace(/\u200B/g,"").replace(/\u00A0/g," ").trim();
+        out = out.replace(/^\s*\[|\]\s*$/g,"").replace(/^\s*\/|\/\s*$/g,"");
+        out = out.replace(/:/g,"ː");
+        out = out.replace(/g/g,"ɡ");
+        out = out.replace(/\u0361/g,"");
+        out = out.replace(/l\.l/g,"lː");
+        out = out.replace(/t͡ʃ/g,"tʃ").replace(/d͡ʒ/g,"dʒ").replace(/t͡s/g,"ts").replace(/d͡z/g,"dz");
+        if (ignoreSyllables) out = out.replace(/[.\-‿\s]/g, "");
+        else out = out.replace(/\s+/g,"");
+        return out.toLowerCase();
+      }
+
+      function stripStress(s){ return s.replace(/[ˈˌ]/g,""); }
+
+      function firstMismatch(a, b){
+        const n = Math.min(a.length, b.length);
+        for (let i=0;i<n;i++) if (a[i] !== b[i]) return i;
+        if (a.length !== b.length) return n;
+        return -1;
+      }
+
+      function detectMistakes(userN, expN){
+        const tips = [];
+        if (stripStress(userN) === stripStress(expN) && userN !== expN){
+          tips.push("Sembla que només falla l’ACCENT TÒNIC: posa ˈ (i/o ˌ) al lloc correcte.");
+        }
+        if (expN.includes("ɛ") && userN.includes("e") && !userN.includes("ɛ")) tips.push("Vigila e/ɛ: si la solució porta ɛ, no és una e tancada.");
+        if (expN.includes("e") && userN.includes("ɛ") && !userN.includes("e")) tips.push("Vigila e/ɛ: potser has obert una e que hauria de ser e.");
+        if (expN.includes("ɔ") && userN.includes("o") && !userN.includes("ɔ")) tips.push("Vigila o/ɔ: si la solució porta ɔ, no és una o tancada.");
+        if (expN.includes("o") && userN.includes("ɔ") && !userN.includes("o")) tips.push("Vigila o/ɔ: potser has obert una o que hauria de ser o.");
+        if (expN.includes("ə") && !userN.includes("ə")) tips.push("Falta alguna ə (vocal neutra): sovint apareix en síl·labes àtones (català oriental).");
+        if (!expN.includes("ə") && userN.includes("ə")) tips.push("Has posat alguna ə però la solució no en porta (potser és valencià o una vocal plena).");
+        if (expN.includes("ɾ") && userN.includes("r") && !userN.includes("ɾ")) tips.push("Vibrant simple: sovint és ɾ (no r) en posició intervocàlica.");
+        if (expN.includes("r") && userN.includes("ɾ") && !userN.includes("r")) tips.push("Vibrant múltiple: aquí sembla r (no ɾ).");
+        if (expN.includes("lː") && (userN.includes("l") && !userN.includes("lː"))) tips.push("Ela geminada: prova lː (també acceptem l.l).");
+        if (expN.includes("ʃ") && userN.includes("s") && !userN.includes("ʃ")) tips.push("Atenció s/ʃ: en aquest punt sona com ʃ (x).");
+        if (expN.includes("ʒ") && userN.includes("z") && !userN.includes("ʒ")) tips.push("Atenció z/ʒ: aquí és ʒ (j/ig).");
+        return tips;
+      }
+
+      function explainDiff(userRaw, expRaw, ignoreSyllables){
+        const tips = [];
+        const uN = normalizeForCompare(userRaw, ignoreSyllables);
+        const eN = normalizeForCompare(expRaw, ignoreSyllables);
+
+        if (ignoreSyllables) tips.push("No es penalitzen punts (.), guions (-), lligadures (͡) ni espais.");
+
+        const idx = firstMismatch(uN, eN);
+        if (idx >= 0){
+          tips.push(`Primera diferència al caràcter ${idx+1}: tu «${uN[idx] ?? "∅"}», s’espera «${eN[idx] ?? "∅"}».`);
+        }
+        if (uN.length !== eN.length){
+          tips.push(`Longitud diferent: teva (${uN.length}) vs esperada (${eN.length}).`);
+        }
+
+        tips.push(...detectMistakes(uN, eN));
+        if (!tips.length) tips.push("Revisa l’accent tònic (ˈ), les vocals (ə/ɛ/ɔ) i r/ɾ.");
+        return tips;
+      }
+
+      // =========================
+      //  UI / accions
+      // =========================
+      const btnCorrect = document.getElementById("btnCorrect");
+      const btnReveal  = document.getElementById("btnReveal");
+      const btnNext    = document.getElementById("btnNext");
+      const btnReset   = document.getElementById("btnReset");
+      const btnClear   = document.getElementById("btnClear");
+      const dialectEl  = document.getElementById("dialect");
+
+      function pickSolution(ipaObj){
+        const mode = dialectEl.value;
+        if (mode === "east") return { label: "Central/Balear", ipa: ipaObj.east, extra: ipaObj.val ? {label:"Valencià", ipa: ipaObj.val} : null };
+        if (mode === "val")  return { label: "Valencià", ipa: ipaObj.val || ipaObj.east, extra: ipaObj.val ? null : {label:"(No hi havia variant val.)", ipa: ipaObj.east} };
+        return { label: "Central/Balear", ipa: ipaObj.east, extra: ipaObj.val ? {label:"Valencià", ipa: ipaObj.val} : null };
+      }
+
+      function setBusy(isBusy, msg){
+        btnCorrect.disabled = btnReveal.disabled = btnNext.disabled = isBusy;
+        if (isBusy && msg){
+          statusEl.className = "status warn";
           statusEl.textContent = msg;
         }
-      } catch (e){
-        statusEl.className = "status bad";
-        statusEl.textContent = `Error en generar la solució: ${e?.message ?? e}\n\nTip: si estàs en file://, prova amb servidor local (python -m http.server 8000).`;
-      } finally {
-        btnCorrect.disabled = btnReveal.disabled = btnNext.disabled = false;
       }
-    }
 
-    btnNext.addEventListener("click", nextWord);
-    btnCorrect.addEventListener("click", check);
-    btnReveal.addEventListener("click", reveal);
-    btnClear.addEventListener("click", ()=>{ ansEl.value=""; ansEl.focus(); });
-    btnReset.addEventListener("click", ()=>{ resetPool(); nextWord(); });
-    document.getElementById("minLen").addEventListener("change", ()=>{ resetPool(); nextWord(); });
+      async function nextWord(){
+        if (!pool.length){
+          statusEl.className = "status warn";
+          statusEl.textContent = "Pool buit. Prem “Reinicia pool”.";
+          return;
+        }
 
-    ansEl.addEventListener("keydown", (e)=>{
-      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)){
-        e.preventDefault();
-        check();
+        setBusy(true, "Buscant una paraula corregible (amb IPA)…");
+
+        // intentem trobar una paraula amb IPA (i la guardem a currentIPA)
+        const MAX_TRIES = 30;
+        for (let t=0; t<MAX_TRIES; t++){
+          const w = pickRandomFromPool();
+          if (!w) break;
+
+          if (badSet.has(w)) continue;
+
+          try{
+            const ipaObj = await getIPA(w);
+            // si per algun motiu torna buit, la descartem
+            if (!ipaObj?.east || !isValidIPA(ipaObj.east)) throw new Error("IPA buida o sospitosa.");
+
+            goodSet.add(w);
+            saveSets();
+
+            currentIPA = ipaObj;
+            setWord(w);
+
+            setBusy(false);
+            return;
+          } catch {
+            badSet.add(w);
+            saveSets();
+            // continuem a buscar
+          }
+        }
+
+        setBusy(false);
+        statusEl.className = "status warn";
+        statusEl.textContent = "No he trobat cap paraula corregible en aquest pool. Prova de baixar la longitud mínima o prem “Reinicia pool”.";
+        currentWord = null;
+        currentIPA = null;
+        wordEl.textContent = "—";
+        wordMeta.textContent = "—";
       }
+
+      async function reveal(){
+        if (!currentWord){
+          statusEl.className = "status warn";
+          statusEl.textContent = "Primer prem “Següent”.";
+          return;
+        }
+        setBusy(true, "Obtenint solució (Wiktionary ca-IPA)…");
+        try{
+          const ipaObj = currentIPA || await getIPA(currentWord);
+          const sol = pickSolution(ipaObj);
+
+          let msg = `Solució (${sol.label}): ${sol.ipa}`;
+          if (dialectEl.value === "both" && sol.extra) msg += `\nSolució (${sol.extra.label}): ${sol.extra.ipa}`;
+
+          statusEl.className = "status warn";
+          statusEl.textContent = msg;
+        } catch (e){
+          statusEl.className = "status bad";
+          statusEl.textContent = `Error en generar la solució: ${e?.message ?? e}\n\nTip: si estàs en file://, prova amb servidor local (python -m http.server 8000).`;
+        } finally {
+          setBusy(false);
+        }
+      }
+
+      async function check(){
+        if (!currentWord){
+          statusEl.className = "status warn";
+          statusEl.textContent = "Primer prem “Següent”.";
+          return;
+        }
+        const userRaw = ansEl.value;
+        if (!userRaw.trim()){
+          statusEl.className = "status warn";
+          statusEl.textContent = "Escriu alguna cosa abans de corregir.";
+          return;
+        }
+
+        const ignoreSyll = document.getElementById("ignoreSyll").checked;
+
+        setBusy(true, "Corregint (Wiktionary ca-IPA)…");
+        try{
+          const ipaObj = currentIPA || await getIPA(currentWord);
+          const sol = pickSolution(ipaObj);
+          const expRaw = sol.ipa;
+
+          const uN = normalizeForCompare(userRaw, ignoreSyll);
+          const eN = normalizeForCompare(expRaw, ignoreSyll);
+
+          if (uN === eN){
+            let okMsg = `✅ Correcte!\nSolució (${sol.label}): ${expRaw}`;
+            if (dialectEl.value === "both" && sol.extra) okMsg += `\nSolució (${sol.extra.label}): ${sol.extra.ipa}`;
+            statusEl.className = "status ok";
+            statusEl.textContent = okMsg;
+          } else {
+            const tips = explainDiff(userRaw, expRaw, ignoreSyll);
+            let msg = `❌ No coincideix.\nSolució (${sol.label}): ${expRaw}`;
+            if (dialectEl.value === "both" && sol.extra) msg += `\nSolució (${sol.extra.label}): ${sol.extra.ipa}`;
+            msg += `\n\nConsells:\n- ${tips.join("\n- ")}`;
+            statusEl.className = "status bad";
+            statusEl.textContent = msg;
+          }
+        } catch (e){
+          statusEl.className = "status bad";
+          statusEl.textContent = `Error en generar la solució: ${e?.message ?? e}\n\nTip: si estàs en file://, prova amb servidor local (python -m http.server 8000).`;
+        } finally {
+          setBusy(false);
+        }
+      }
+
+      // Events
+      btnNext.addEventListener("click", ()=> nextWord());
+      btnCorrect.addEventListener("click", ()=> check());
+      btnReveal.addEventListener("click", ()=> reveal());
+      btnClear.addEventListener("click", ()=>{ ansEl.value=""; ansEl.focus(); });
+
+      btnReset.addEventListener("click", ()=>{
+        buildPool();
+        currentWord = null;
+        currentIPA = null;
+        statusEl.className = "status";
+        statusEl.textContent = "Pool reiniciat. Prem “Següent”.";
+        wordEl.textContent = "—";
+        wordMeta.textContent = "—";
+      });
+
+      document.getElementById("minLen").addEventListener("change", ()=>{
+        buildPool();
+        currentWord = null;
+        currentIPA = null;
+        statusEl.className = "status";
+        statusEl.textContent = "Pool actualitzat. Prem “Següent”.";
+        wordEl.textContent = "—";
+        wordMeta.textContent = "—";
+      });
+
+      ansEl.addEventListener("keydown", (e)=>{
+        if (e.key === "Enter" && (e.ctrlKey || e.metaKey)){
+          e.preventDefault();
+          check();
+        }
+      });
+
+      (async function boot(){
+        await loadWords();
+        buildPool();
+        statusEl.className = "status";
+        statusEl.textContent = "Llista carregada. Prem “Següent” per començar.";
+      })();
+
     });
-
-    (async function boot(){
-      await loadWords();
-      resetPool();
-      statusEl.className = "status";
-      statusEl.textContent = "Llista carregada. Prem “Següent” per començar.";
-    })();
   </script>
 </body>
 </html>
