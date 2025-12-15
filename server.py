@@ -1,4 +1,6 @@
 import subprocess
+import sys
+import shutil
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
@@ -38,14 +40,30 @@ def ipa(req: IPARequest):
     except Exception:
         pass
 
-    cmd = [
-        "espeak-phonemizer",
-        "-v", req.voice,
-        "-p", "",              # separador fonemes
-        "-w", "",              # separador paraules
-        "-o", str(TMP_OUT),    # sortida a fitxer (UTF-8)
-        text,
-    ]
+    # --- Construcció de la comanda (robust a Windows) ---
+    # 1) Prova a trobar l'executable a PATH
+    exe = shutil.which("espeak-phonemizer")
+
+    # 2) Si no existeix, usa el mòdul amb el mateix Python que està executant el servidor
+    if exe:
+        cmd = [
+            exe,
+            "-v", req.voice,
+            "-p", "",              # separador fonemes
+            "-w", "",              # separador paraules
+            "-o", str(TMP_OUT),    # sortida a fitxer UTF-8
+            text,
+        ]
+    else:
+        cmd = [
+            sys.executable, "-m", "espeak_phonemizer",
+            "-v", req.voice,
+            "-p", "",
+            "-w", "",
+            "-o", str(TMP_OUT),
+            text,
+        ]
+
     if not req.keep_stress:
         cmd.insert(1, "--no-stress")
 
@@ -54,7 +72,7 @@ def ipa(req: IPARequest):
     except FileNotFoundError:
         raise HTTPException(
             status_code=500,
-            detail="No trobo 'espeak-phonemizer'. Activa la venv i reinstal·la requirements.",
+            detail="No trobo espeak-phonemizer (ni exe ni mòdul). Revisa que tens la venv activada i el paquet instal·lat.",
         )
 
     if p.returncode != 0:
