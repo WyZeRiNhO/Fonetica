@@ -1,0 +1,694 @@
+<!doctype html>
+<html lang="ca">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pràctica Fonètica Catalana (IPA) — WyZeR</title>
+
+  <style>
+    :root{
+      --bg:#0b1220; --text:#e7ecff; --muted:#aeb8df; --brand:#66e3ff;
+      --ok:#45f39a; --bad:#ff6b7a; --warn:#ffcf5a;
+      --stroke:rgba(255,255,255,.10); --radius:18px;
+      --ipaMono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; min-height:100vh; color:var(--text);
+      background:
+        radial-gradient(1200px 600px at 20% 0%, rgba(102,227,255,.18), transparent 60%),
+        radial-gradient(1000px 600px at 80% 10%, rgba(69,243,154,.10), transparent 60%),
+        var(--bg);
+      font: 15px/1.35 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+    .topbar{
+      position:sticky; top:0; z-index:10;
+      backdrop-filter: blur(10px);
+      background: linear-gradient(to bottom, rgba(11,18,32,.85), rgba(11,18,32,.55));
+      border-bottom:1px solid var(--stroke);
+    }
+    .topbar-inner{
+      max-width:1120px; margin:0 auto; padding:14px 16px;
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+    }
+    .brand{display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-weight:850; letter-spacing:.2px;}
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:6px 10px; border-radius:999px;
+      background: rgba(255,255,255,.06);
+      border:1px solid var(--stroke);
+      color:var(--muted); font-weight:750; font-size:12px; white-space:nowrap;
+    }
+    .author{
+      color:rgba(255,255,255,.85);
+      border:1px solid rgba(102,227,255,.25);
+      background: rgba(102,227,255,.08);
+    }
+    main{
+      max-width:1120px; margin:0 auto; padding:18px 16px 28px;
+      display:grid; grid-template-columns: 1.05fr .95fr; gap:14px;
+    }
+    @media (max-width: 980px){ main{ grid-template-columns:1fr; } }
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid var(--stroke);
+      border-radius: var(--radius);
+      box-shadow: 0 14px 40px rgba(0,0,0,.35);
+      overflow:hidden;
+    }
+    .card-header{
+      padding:14px 14px 10px; border-bottom:1px solid var(--stroke);
+      display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+    }
+    .card-title{font-size:14px; font-weight:850; margin:0; letter-spacing:.2px}
+    .card-sub{margin:6px 0 0; color:var(--muted); font-size:12.5px}
+    .card-body{padding:14px}
+    .grid2{display:grid; grid-template-columns: 1fr 1fr; gap:10px}
+    @media (max-width: 520px){ .grid2{ grid-template-columns:1fr; } }
+    label{display:block; font-size:12px; color:var(--muted); font-weight:800; margin-bottom:6px}
+    select, input[type="number"]{
+      width:100%; padding:10px 12px; border-radius:14px;
+      border:1px solid var(--stroke); outline:none;
+      background: rgba(15,26,48,.65); color:var(--text); font-weight:750;
+    }
+    .toggle{
+      display:flex; align-items:center; gap:10px;
+      padding:10px 12px; border-radius:14px;
+      border:1px solid var(--stroke);
+      background: rgba(15,26,48,.45);
+      color:var(--muted); font-weight:750; font-size:12.5px;
+      margin-top:10px;
+    }
+    .toggle input{ transform: translateY(1px); }
+
+    .wordbox{
+      margin-top:12px; padding:16px; border-radius:16px;
+      background: linear-gradient(180deg, rgba(102,227,255,.12), rgba(255,255,255,.03));
+      border:1px solid rgba(102,227,255,.28);
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+    }
+    .mini{ color:var(--muted); font-size:12px; font-weight:800; white-space:nowrap; }
+    .word{
+      font-size:38px; font-weight:950; letter-spacing:.4px; line-height:1.05;
+      text-shadow: 0 8px 22px rgba(0,0,0,.35);
+      word-break:break-word;
+    }
+    textarea{
+      width:100%; min-height:92px; resize:vertical;
+      padding:12px 12px; border-radius:16px; border:1px solid var(--stroke);
+      outline:none; background: rgba(15,26,48,.55);
+      color:var(--text); font-weight:750;
+      font-family: var(--ipaMono); font-size:16px;
+    }
+    .controls{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px}
+    button{
+      cursor:pointer; padding:10px 12px; border-radius:14px;
+      border:1px solid var(--stroke);
+      background: rgba(255,255,255,.06);
+      color:var(--text);
+      font-weight:900; letter-spacing:.2px;
+    }
+    button.primary{border-color: rgba(102,227,255,.35); background: rgba(102,227,255,.12)}
+    button.good{border-color: rgba(69,243,154,.35); background: rgba(69,243,154,.10)}
+    button.danger{border-color: rgba(255,107,122,.35); background: rgba(255,107,122,.10)}
+    button:disabled{opacity:.55; cursor:not-allowed}
+
+    .status{
+      margin-top:10px; padding:12px 12px; border-radius:16px;
+      border:1px solid var(--stroke);
+      background: rgba(15,26,48,.45);
+      color:var(--muted);
+      font-family: var(--ipaMono);
+      font-size:13px; white-space:pre-wrap;
+    }
+    .status.ok{border-color: rgba(69,243,154,.35); background: rgba(69,243,154,.08); color: rgba(231,255,244,.95)}
+    .status.bad{border-color: rgba(255,107,122,.35); background: rgba(255,107,122,.08); color: rgba(255,236,238,.95)}
+    .status.warn{border-color: rgba(255,207,90,.35); background: rgba(255,207,90,.08); color: rgba(255,250,235,.95)}
+
+    .kbdhelp{
+      margin-top:10px; padding:12px; border-radius:16px;
+      border:1px dashed rgba(255,255,255,.18);
+      background: rgba(255,255,255,.03);
+      color:rgba(231,236,255,.90);
+      font-size:12.5px;
+    }
+    .kbdhelp b{ color:var(--brand); }
+
+    .kb{display:grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap:8px}
+    @media (max-width: 980px){ .kb{ grid-template-columns: repeat(8, minmax(0, 1fr)); } }
+    @media (max-width: 520px){ .kb{ grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+    .key{
+      user-select:none; text-align:center;
+      padding:10px 8px; border-radius:14px;
+      border:1px solid var(--stroke);
+      background: rgba(255,255,255,.06);
+      font-weight:950; font-size:14px;
+      font-family: var(--ipaMono);
+    }
+    .key:hover{ filter:brightness(1.08); }
+    .keyWide{ grid-column: span 2; }
+  </style>
+</head>
+
+<body>
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--brand);box-shadow:0 0 18px rgba(102,227,255,.75)"></span>
+        <span>Pràctica de Fonètica Catalana (IPA)</span>
+        <span class="pill" id="enginePill">Motor: Wiktionary ca-IPA</span>
+        <span class="pill" id="wordsPill">Paraules: …</span>
+        <span class="pill" id="poolPill">Pool: …</span>
+      </div>
+      <div class="pill author">Autor: <b>WyZeR</b></div>
+    </div>
+  </div>
+
+  <main>
+    <section class="card">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">1) Transcriu la paraula</h2>
+          <p class="card-sub">Pool sense repeticions. La solució IPA ve del motor ca-IPA de Wiktionary.</p>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <div class="grid2">
+          <div>
+            <label for="dialect">Varietat (solució)</label>
+            <select id="dialect">
+              <option value="east" selected>Central/Balear (oriental)</option>
+              <option value="val">Valencià</option>
+              <option value="both">Mostra les dues</option>
+            </select>
+          </div>
+          <div>
+            <label for="minLen">Longitud mínima</label>
+            <input id="minLen" type="number" min="2" max="20" value="4" />
+          </div>
+        </div>
+
+        <div class="toggle">
+          <input id="ignoreSyll" type="checkbox" checked />
+          <label for="ignoreSyll" style="margin:0; font-weight:800; color:var(--muted);">
+            Ignora punts (.), guions (-), lligadures (͡) i espais a l’hora de comparar
+          </label>
+        </div>
+
+        <div class="wordbox">
+          <div>
+            <div class="mini">PARAULA A TRANSCRIURE</div>
+            <div class="word" id="word">—</div>
+          </div>
+          <div class="mini" id="wordMeta">—</div>
+        </div>
+
+        <div style="margin-top:12px;">
+          <label for="answer">La teva transcripció (IPA)</label>
+          <textarea id="answer" spellcheck="false" placeholder="Pots posar [ ] o / /. Ctrl+Enter = corregir."></textarea>
+        </div>
+
+        <div class="controls">
+          <button class="good" id="btnNext">Següent</button>
+          <button class="primary" id="btnCorrect">Corregir</button>
+          <button id="btnReveal">Veure solució</button>
+          <button id="btnClear">Neteja</button>
+          <button class="danger" id="btnReset">Reinicia pool</button>
+        </div>
+
+        <div class="status" id="status">Carregant paraules…</div>
+
+        <div class="kbdhelp">
+          <div><b>Notes de compatibilitat</b></div>
+          <div>• Normalització: <b>:</b> → <b>ː</b>, <b>g</b> → <b>ɡ</b>, treu <b>͡</b>, i accepta <b>l.l</b> com <b>lː</b>.</div>
+          <div>• Si el navegador bloqueja peticions en <b>file://</b>, obre amb un servidor local (ex. <b>python -m http.server 8000</b>).</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">2) Teclat IPA (Català)</h2>
+          <p class="card-sub">Inclou <b>ɱ</b> (m amb cua) i símbols habituals a classe.</p>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="kb" id="kb"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // =========================
+    //  Teclat IPA (Català)
+    // =========================
+    const KEYS_DIAC = ["ˈ","ˌ","ː","̆","·","͡",".","‿","-","̃","̥","̬","(",")","[","]","/","/","␠"];
+    const KEYS_VOWELS = ["a","ə","e","ɛ","i","o","ɔ","u"];
+    const KEYS_CONS_CORE = [
+      "p","b","t","d","k","ɡ",
+      "f","v","s","z","ʃ","ʒ",
+      "t͡s","d͡z","t͡ʃ","d͡ʒ",
+      "m","n","ɲ","ŋ",
+      "l","ɫ","ʎ","lː",
+      "ɾ","r",
+      "j","w"
+    ];
+    const KEYS_CONS_EXT = [
+      "ɱ",      // m amb cua
+      "β","ð","ɣ",
+      "x","h",
+      "ʝ",
+      "tɕ","dʑ",
+      "ʔ"
+    ];
+    const KEYS_CTRL = ["⌫","DEL","CLR","OK"];
+    const ALL_KEYS = [...KEYS_DIAC, ...KEYS_VOWELS, ...KEYS_CONS_CORE, ...KEYS_CONS_EXT, ...KEYS_CTRL];
+
+    const kbGrid = document.getElementById("kb");
+    const ansEl  = document.getElementById("answer");
+
+    function insertAtCursor(el, text){
+      el.focus();
+      const start = el.selectionStart ?? el.value.length;
+      const end   = el.selectionEnd ?? el.value.length;
+      el.value = el.value.slice(0, start) + text + el.value.slice(end);
+      const pos = start + text.length;
+      el.setSelectionRange(pos, pos);
+    }
+    function backspaceAtCursor(el){
+      const start = el.selectionStart ?? el.value.length;
+      const end   = el.selectionEnd ?? el.value.length;
+      if (start !== end){
+        el.value = el.value.slice(0,start) + el.value.slice(end);
+        el.setSelectionRange(start, start);
+        el.focus();
+        return;
+      }
+      if (start <= 0) return;
+      el.value = el.value.slice(0, start - 1) + el.value.slice(start);
+      el.setSelectionRange(start - 1, start - 1);
+      el.focus();
+    }
+    function buildKeyboard(){
+      kbGrid.innerHTML = "";
+      for (const k of ALL_KEYS){
+        const btn = document.createElement("div");
+        btn.className = "key";
+        btn.textContent = k;
+        if (k === "⌫" || k === "DEL" || k === "CLR" || k === "OK") btn.classList.add("keyWide");
+
+        btn.addEventListener("click", ()=>{
+          if (k === "⌫") return backspaceAtCursor(ansEl);
+          if (k === "DEL") {
+            const s = ansEl.selectionStart ?? ansEl.value.length;
+            const e = ansEl.selectionEnd ?? ansEl.value.length;
+            if (s !== e){
+              ansEl.value = ansEl.value.slice(0,s) + ansEl.value.slice(e);
+              ansEl.setSelectionRange(s,s);
+            }
+            ansEl.focus();
+            return;
+          }
+          if (k === "CLR") { ansEl.value=""; ansEl.focus(); return; }
+          if (k === "OK")  { check(); return; }
+          if (k === "␠") return insertAtCursor(ansEl, " ");
+          insertAtCursor(ansEl, k);
+        });
+
+        kbGrid.appendChild(btn);
+      }
+    }
+    buildKeyboard();
+
+    // =========================
+    //  Paraules reals + pool
+    // =========================
+    const WORDS_URL = "https://raw.githubusercontent.com/hermitdave/FrequencyWords/master/content/2016/ca/ca_50k.txt";
+    const FALLBACK_WORDS = [
+      "català","llengua","paral·lel","intel·ligència","pel·lícula","col·legi","formatge","taronja","finestra","biblioteca",
+      "història","memòria","filosofia","ciència","matemàtiques","derivada","examen","professora","dialecte","fonètica",
+      "terra","muntanya","mar","temps","carrer","escola","ciutat","poble","amistat","estudiar",
+      "encendre","encobreixen","dividirem","resposta","consell","correcte","paraula","transcripció","vocal","consonant","accent"
+    ];
+
+    const wordEl = document.getElementById("word");
+    const wordMeta = document.getElementById("wordMeta");
+    const statusEl = document.getElementById("status");
+    const wordsPill = document.getElementById("wordsPill");
+    const poolPill = document.getElementById("poolPill");
+
+    let words = [];
+    let pool = [];
+    let currentWord = null;
+
+    function filterWord(w){
+      // Evitem guions, apòstrofs, números... per fer-ho “net” per practicar
+      // Acceptem el punt volat (·)
+      return /^[a-zàèéíïòóúüç·]+$/i.test(w);
+    }
+
+    async function loadWords(){
+      // cache localStorage per no tornar a baixar sempre
+      try{
+        const cached = localStorage.getItem("wyzer_ca_words_50k_v2");
+        if (cached){
+          const arr = JSON.parse(cached);
+          if (Array.isArray(arr) && arr.length > 10000){
+            words = arr;
+            wordsPill.textContent = `Paraules: ${words.length.toLocaleString("ca-ES")}`;
+            return;
+          }
+        }
+      } catch {}
+
+      statusEl.className = "status warn";
+      statusEl.textContent = "Descarregant llista de paraules (50k)…";
+
+      try{
+        const r = await fetch(WORDS_URL, { cache:"force-cache" });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const txt = await r.text();
+        const out = [];
+        for (const line of txt.split("\n")){
+          const t = line.trim();
+          if (!t) continue;
+          const token = t.split(/\s+/)[0]?.toLowerCase();
+          if (token && filterWord(token)) out.push(token);
+        }
+        words = Array.from(new Set(out));
+        localStorage.setItem("wyzer_ca_words_50k_v2", JSON.stringify(words));
+        wordsPill.textContent = `Paraules: ${words.length.toLocaleString("ca-ES")}`;
+      } catch {
+        words = Array.from(new Set(FALLBACK_WORDS));
+        wordsPill.textContent = `Paraules: ${words.length.toLocaleString("ca-ES")} (fallback)`;
+        statusEl.className = "status warn";
+        statusEl.textContent = "No he pogut descarregar 50k. Mode fallback activat.";
+      }
+    }
+
+    function resetPool(){
+      const minLen = Number(document.getElementById("minLen").value || 4);
+      pool = words.filter(w => w.length >= minLen);
+      poolPill.textContent = `Pool: ${pool.length.toLocaleString("ca-ES")}`;
+    }
+    function pickRandomFromPool(){
+      if (!pool.length) return null;
+      const i = Math.floor(Math.random() * pool.length);
+      const w = pool[i];
+      pool[i] = pool[pool.length - 1];
+      pool.pop();
+      poolPill.textContent = `Pool: ${pool.length.toLocaleString("ca-ES")}`;
+      return w;
+    }
+    function setWord(w){
+      currentWord = w;
+      wordEl.textContent = w;
+      wordMeta.textContent = `Lletres: ${w.length} · (sense repetició)`;
+      ansEl.value = "";
+      statusEl.className = "status";
+      statusEl.textContent = "Escriu la transcripció i prem “Corregir”.";
+    }
+    function nextWord(){
+      const w = pickRandomFromPool();
+      if (!w){
+        statusEl.className = "status warn";
+        statusEl.textContent = "Has esgotat el pool. Prem “Reinicia pool”.";
+        currentWord = null;
+        wordEl.textContent = "—";
+        wordMeta.textContent = "—";
+        return;
+      }
+      setWord(w);
+    }
+
+    // =========================
+    //  IPA real via Wiktionary ca-IPA
+    // =========================
+    const WIKI_API = "https://en.wiktionary.org/w/api.php";
+
+    const ipaCacheKey = "wyzer_ipa_cache_v1";
+    let ipaCache = {};
+    try { ipaCache = JSON.parse(localStorage.getItem(ipaCacheKey) || "{}"); } catch { ipaCache = {}; }
+
+    function cacheGet(key){ return ipaCache[key] || null; }
+    function cacheSet(key, val){
+      ipaCache[key] = val;
+      // evitem que creixi infinit
+      const keys = Object.keys(ipaCache);
+      if (keys.length > 5000){
+        for (let i=0;i<1000;i++) delete ipaCache[keys[i]];
+      }
+      localStorage.setItem(ipaCacheKey, JSON.stringify(ipaCache));
+    }
+
+    async function wiktionaryCaIPA(word){
+      // Parseja la plantilla: {{ca-IPA|WORD}}
+      // (CORS amb origin=*) :contentReference[oaicite:1]{index=1}
+      const text = `{{ca-IPA|${word}}}`;
+      const url = `${WIKI_API}?action=parse&format=json&origin=*&prop=text&text=${encodeURIComponent(text)}`;
+      const r = await fetch(url);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const j = await r.json();
+      const html = j?.parse?.text?.["*"];
+      if (!html) throw new Error("Resposta buida del motor ca-IPA");
+
+      const tmp = document.createElement("div");
+      tmp.innerHTML = html;
+
+      // normalment hi ha 1 o 2 span.IPA
+      const spans = Array.from(tmp.querySelectorAll(".IPA"));
+      const ipas = spans.map(s => (s.textContent || "").trim()).filter(Boolean);
+
+      if (!ipas.length) throw new Error("No he trobat cap IPA a la resposta (span.IPA)");
+
+      // intent: primera = orientals, segona = valencià (com a l’exemple del template) :contentReference[oaicite:2]{index=2}
+      const east = ipas[0];
+      const val  = ipas[1] || null;
+
+      return { east, val };
+    }
+
+    async function getIPA(word){
+      const key = `caipa:${word}`;
+      const cached = cacheGet(key);
+      if (cached) return cached;
+
+      const res = await wiktionaryCaIPA(word);
+      cacheSet(key, res);
+      return res;
+    }
+
+    // =========================
+    //  Normalització + consells
+    // =========================
+    function normalizeForCompare(s, ignoreSyllables){
+      let out = (s ?? "").normalize("NFC").replace(/\u200B/g,"").replace(/\u00A0/g," ").trim();
+
+      // Treu [] o // si l’usuari les posa
+      out = out.replace(/^\s*\[|\]\s*$/g,"").replace(/^\s*\/|\/\s*$/g,"");
+
+      // Normalitzacions típiques
+      out = out.replace(/:/g,"ː");        // llargada
+      out = out.replace(/g/g,"ɡ");        // g tipogràfica vs ɡ
+      out = out.replace(/\u0361/g,"");    // lligadura ͡
+      out = out.replace(/l\.l/g,"lː");    // ela geminada alternativa
+
+      // compacta afrikades
+      out = out.replace(/t͡ʃ/g,"tʃ").replace(/d͡ʒ/g,"dʒ").replace(/t͡s/g,"ts").replace(/d͡z/g,"dz");
+
+      if (ignoreSyllables) out = out.replace(/[.\-‿\s]/g, "");
+      else out = out.replace(/\s+/g,"");
+
+      return out.toLowerCase();
+    }
+
+    function stripStress(s){ return s.replace(/[ˈˌ]/g,""); }
+
+    function firstMismatch(a, b){
+      const n = Math.min(a.length, b.length);
+      for (let i=0;i<n;i++) if (a[i] !== b[i]) return i;
+      if (a.length !== b.length) return n;
+      return -1;
+    }
+
+    function detectMistakes(userN, expN){
+      const tips = [];
+
+      // 1) Stress
+      if (stripStress(userN) === stripStress(expN) && userN !== expN){
+        tips.push("Sembla que només falla l’ACCENT TÒNIC: posa ˈ (i/o ˌ) al lloc correcte.");
+      }
+
+      // 2) e/ɛ
+      if (expN.includes("ɛ") && userN.includes("e") && !userN.includes("ɛ")) tips.push("Vigila e/ɛ: si la solució porta ɛ, no és una e tancada.");
+      if (expN.includes("e") && userN.includes("ɛ") && !userN.includes("e")) tips.push("Vigila e/ɛ: potser has obert una e que hauria de ser e.");
+
+      // 3) o/ɔ
+      if (expN.includes("ɔ") && userN.includes("o") && !userN.includes("ɔ")) tips.push("Vigila o/ɔ: si la solució porta ɔ, no és una o tancada.");
+      if (expN.includes("o") && userN.includes("ɔ") && !userN.includes("o")) tips.push("Vigila o/ɔ: potser has obert una o que hauria de ser o.");
+
+      // 4) schwa
+      if (expN.includes("ə") && !userN.includes("ə")) tips.push("Falta alguna ə (vocal neutra): sovint apareix en síl·labes àtones (català oriental).");
+      if (!expN.includes("ə") && userN.includes("ə")) tips.push("Has posat alguna ə però la solució no en porta (potser és valencià o una vocal plena).");
+
+      // 5) r/ɾ
+      if (expN.includes("ɾ") && userN.includes("r") && !userN.includes("ɾ")) tips.push("Vibrant simple: sovint és ɾ (no r) en posició intervocàlica.");
+      if (expN.includes("r") && userN.includes("ɾ") && !userN.includes("r")) tips.push("Vibrant múltiple: aquí sembla r (no ɾ).");
+
+      // 6) l·l
+      if (expN.includes("lː") && (userN.includes("l") && !userN.includes("lː"))) tips.push("Ela geminada: prova lː (també acceptem l.l).");
+
+      // 7) sibilants
+      if (expN.includes("ʃ") && userN.includes("s") && !userN.includes("ʃ")) tips.push("Atenció s/ʃ: en aquest punt sona com ʃ (x).");
+      if (expN.includes("ʒ") && userN.includes("z") && !userN.includes("ʒ")) tips.push("Atenció z/ʒ: aquí és ʒ (j/ig).");
+
+      return tips;
+    }
+
+    function explainDiff(userRaw, expRaw, ignoreSyllables){
+      const tips = [];
+
+      const uN = normalizeForCompare(userRaw, ignoreSyllables);
+      const eN = normalizeForCompare(expRaw, ignoreSyllables);
+
+      if (ignoreSyllables) tips.push("No es penalitzen punts (.), guions (-), lligadures (͡) ni espais.");
+
+      const idx = firstMismatch(uN, eN);
+      if (idx >= 0){
+        tips.push(`Primera diferència al caràcter ${idx+1}: tu «${uN[idx] ?? "∅"}», s’espera «${eN[idx] ?? "∅"}».`);
+      }
+      if (uN.length !== eN.length){
+        tips.push(`Longitud diferent: teva (${uN.length}) vs esperada (${eN.length}).`);
+      }
+
+      tips.push(...detectMistakes(uN, eN));
+
+      if (!tips.length){
+        tips.push("Revisa l’accent tònic (ˈ), les vocals (ə/ɛ/ɔ) i r/ɾ.");
+      }
+      return tips;
+    }
+
+    // =========================
+    //  UI / accions
+    // =========================
+    const btnCorrect = document.getElementById("btnCorrect");
+    const btnReveal  = document.getElementById("btnReveal");
+    const btnNext    = document.getElementById("btnNext");
+    const btnReset   = document.getElementById("btnReset");
+    const btnClear   = document.getElementById("btnClear");
+    const dialectEl  = document.getElementById("dialect");
+
+    function escapeHtml(s){
+      return String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[c]));
+    }
+
+    function pickSolution(ipaObj){
+      const mode = dialectEl.value;
+      if (mode === "east") return { label: "Central/Balear", ipa: ipaObj.east, extra: ipaObj.val ? {label:"Valencià", ipa: ipaObj.val} : null };
+      if (mode === "val")  return { label: "Valencià", ipa: ipaObj.val || ipaObj.east, extra: ipaObj.val ? null : {label:"(No hi havia variant val.)", ipa: ipaObj.east} };
+      return { label: "Central/Balear", ipa: ipaObj.east, extra: ipaObj.val ? {label:"Valencià", ipa: ipaObj.val} : null };
+    }
+
+    async function reveal(){
+      if (!currentWord){
+        statusEl.className = "status warn";
+        statusEl.textContent = "Primer prem “Següent”.";
+        return;
+      }
+      btnCorrect.disabled = btnReveal.disabled = btnNext.disabled = true;
+      statusEl.className = "status warn";
+      statusEl.textContent = "Obtenint solució (Wiktionary ca-IPA)…";
+
+      try{
+        const ipaObj = await getIPA(currentWord);
+        const sol = pickSolution(ipaObj);
+
+        let msg = `Solució (${sol.label}): ${sol.ipa}`;
+        if (dialectEl.value === "both" && sol.extra) msg += `\nSolució (${sol.extra.label}): ${sol.extra.ipa}`;
+
+        statusEl.className = "status warn";
+        statusEl.textContent = msg;
+      } catch (e){
+        statusEl.className = "status bad";
+        statusEl.textContent = `Error en generar la solució: ${e?.message ?? e}\n\nTip: si estàs en file://, prova amb servidor local (python -m http.server 8000).`;
+      } finally {
+        btnCorrect.disabled = btnReveal.disabled = btnNext.disabled = false;
+      }
+    }
+
+    async function check(){
+      if (!currentWord){
+        statusEl.className = "status warn";
+        statusEl.textContent = "Primer prem “Següent”.";
+        return;
+      }
+      const userRaw = ansEl.value;
+      if (!userRaw.trim()){
+        statusEl.className = "status warn";
+        statusEl.textContent = "Escriu alguna cosa abans de corregir.";
+        return;
+      }
+
+      const ignoreSyll = document.getElementById("ignoreSyll").checked;
+
+      btnCorrect.disabled = btnReveal.disabled = btnNext.disabled = true;
+      statusEl.className = "status warn";
+      statusEl.textContent = "Generant solució (Wiktionary ca-IPA)…";
+
+      try{
+        const ipaObj = await getIPA(currentWord);
+        const sol = pickSolution(ipaObj);
+
+        // per comparar, usem la solució principal
+        const expRaw = sol.ipa;
+
+        const uN = normalizeForCompare(userRaw, ignoreSyll);
+        const eN = normalizeForCompare(expRaw, ignoreSyll);
+
+        if (uN === eN){
+          let okMsg = `✅ Correcte!\nSolució (${sol.label}): ${expRaw}`;
+          if (dialectEl.value === "both" && sol.extra) okMsg += `\nSolució (${sol.extra.label}): ${sol.extra.ipa}`;
+          statusEl.className = "status ok";
+          statusEl.textContent = okMsg;
+        } else {
+          const tips = explainDiff(userRaw, expRaw, ignoreSyll);
+          let msg = `❌ No coincideix.\nSolució (${sol.label}): ${expRaw}`;
+          if (dialectEl.value === "both" && sol.extra) msg += `\nSolució (${sol.extra.label}): ${sol.extra.ipa}`;
+          msg += `\n\nConsells:\n- ${tips.join("\n- ")}`;
+          statusEl.className = "status bad";
+          statusEl.textContent = msg;
+        }
+      } catch (e){
+        statusEl.className = "status bad";
+        statusEl.textContent = `Error en generar la solució: ${e?.message ?? e}\n\nTip: si estàs en file://, prova amb servidor local (python -m http.server 8000).`;
+      } finally {
+        btnCorrect.disabled = btnReveal.disabled = btnNext.disabled = false;
+      }
+    }
+
+    btnNext.addEventListener("click", nextWord);
+    btnCorrect.addEventListener("click", check);
+    btnReveal.addEventListener("click", reveal);
+    btnClear.addEventListener("click", ()=>{ ansEl.value=""; ansEl.focus(); });
+    btnReset.addEventListener("click", ()=>{ resetPool(); nextWord(); });
+    document.getElementById("minLen").addEventListener("change", ()=>{ resetPool(); nextWord(); });
+
+    ansEl.addEventListener("keydown", (e)=>{
+      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)){
+        e.preventDefault();
+        check();
+      }
+    });
+
+    (async function boot(){
+      await loadWords();
+      resetPool();
+      statusEl.className = "status";
+      statusEl.textContent = "Llista carregada. Prem “Següent” per començar.";
+    })();
+  </script>
+</body>
+</html>
