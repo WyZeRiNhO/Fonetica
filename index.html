@@ -1,4 +1,300 @@
+<!doctype html>
+<html lang="ca">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pràctica de fonètica (IPA català)</title>
+
+  <!-- Fonts IPA (si tens Internet). Si no, farà fallback a fonts del sistema -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+IPA:wght@400;600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg:#0b1220;
+      --text:#e9eefc;
+      --muted:#a9b4d6;
+      --ok:#2ee59d;
+      --bad:#ff5a7a;
+      --warn:#ffcc66;
+      --btn:#1c2b52;
+      --btn2:#253a6d;
+      --shadow: 0 20px 60px rgba(0,0,0,.35);
+      --radius: 18px;
+      --ipa: "Noto Sans IPA","Doulos SIL","Charis SIL","DejaVu Sans","Arial Unicode MS",system-ui,sans-serif;
+      --ui: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background: radial-gradient(1000px 600px at 20% 0%, #15224a 0%, var(--bg) 45%, #070c16 100%);
+      color:var(--text);
+      font-family: var(--ui);
+      min-height:100vh;
+    }
+    .wrap{max-width:1100px;margin:0 auto;padding:26px 18px 40px}
+    header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}
+    .title{display:flex;flex-direction:column;gap:6px}
+    .title h1{margin:0;font-size:22px;letter-spacing:.2px}
+    .title p{margin:0;color:var(--muted);font-size:13px}
+    .author{
+      font-family:var(--ui);color:var(--muted);font-size:13px;padding:10px 12px;
+      background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+      border-radius:999px;box-shadow: 0 10px 30px rgba(0,0,0,.25);white-space:nowrap;
+    }
+    .grid{display:grid;grid-template-columns: 1.1fr .9fr;gap:16px}
+    @media (max-width: 980px){.grid{grid-template-columns:1fr}}
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card .hd{
+      padding:14px 16px;border-bottom: 1px solid rgba(255,255,255,.08);
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+    }
+    .card .hd .left{display:flex;flex-direction:column;gap:4px}
+    .card .hd .ttl{font-weight:700;letter-spacing:.2px}
+    .card .hd .sub{color:var(--muted);font-size:12px}
+    .card .bd{padding:16px}
+
+    .bigWord{
+      background: rgba(255,255,255,.03);
+      border:1px dashed rgba(255,255,255,.18);
+      border-radius: 16px;
+      padding:16px;
+      display:flex;align-items:center;justify-content:center;
+      min-height:110px;
+    }
+    .bigWord .w{
+      font-size:46px;font-weight:800;letter-spacing:.6px;
+      text-align:center;line-height:1.05;word-break:break-word;
+    }
+
+    .controls{display:grid;grid-template-columns: 1.2fr .8fr .8fr;gap:10px;margin-top:12px}
+    @media (max-width: 520px){.controls{grid-template-columns:1fr}}
+
+    select, button, input{
+      font-family: var(--ui);
+      color:var(--text);
+      background: rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius: 12px;
+      padding:10px 12px;
+      outline:none;
+    }
+    input:focus, select:focus{
+      border-color: rgba(120,170,255,.65);
+      box-shadow: 0 0 0 3px rgba(120,170,255,.18);
+    }
+    button{
+      cursor:pointer;
+      background: linear-gradient(180deg, var(--btn2), var(--btn));
+      border:1px solid rgba(255,255,255,.12);
+      font-weight:700;
+      letter-spacing:.15px;
+      transition:.15s transform ease, .15s filter ease;
+    }
+    button:hover{filter:brightness(1.08)}
+    button:active{transform: translateY(1px)}
+    .btnGhost{
+      background: rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.10);
+      font-weight:600;
+    }
+
+    .pill{
+      display:inline-flex;gap:8px;align-items:center;
+      padding:8px 10px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
+      color:var(--muted);
+      font-size:12px;
+      white-space:nowrap;
+    }
+    .rightTop{display:flex; gap:8px; align-items:center; justify-content:flex-end; flex-wrap:wrap}
+
+    .monoIPA{font-family: var(--ipa);font-variant-ligatures: normal;font-feature-settings: "liga" 1, "clig" 1}
+    .ipaInput{
+      width:100%;
+      font-family: var(--ipa);
+      font-size:22px;
+      padding:12px 14px;
+      background: rgba(0,0,0,.25);
+    }
+
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .row > *{flex: 1 1 auto}
+
+    .sep{height:1px;background:rgba(255,255,255,.08);margin:14px 0}
+
+    .msg{
+      margin-top:12px;padding:12px 12px;border-radius: 14px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.22);
+    }
+    .msg.ok{border-color: rgba(46,229,157,.45); background: rgba(46,229,157,.08)}
+    .msg.bad{border-color: rgba(255,90,122,.45); background: rgba(255,90,122,.08)}
+    .msg.warn{border-color: rgba(255,204,102,.45); background: rgba(255,204,102,.08)}
+    .msg .t{font-weight:800;margin-bottom:6px}
+    .msg .b{color:var(--muted);line-height:1.45}
+
+    .smallNote{color:var(--muted);font-size:12px;line-height:1.35}
+    .sourceLine{margin-top:8px;color:var(--muted);font-size:12px}
+    .hintList{margin:8px 0 0; padding-left:18px; color:var(--muted)}
+    .hintList li{margin:4px 0}
+
+    .kbd{display:grid;grid-template-columns: repeat(10, minmax(0,1fr));gap:8px}
+    @media (max-width: 980px){.kbd{grid-template-columns: repeat(8, minmax(0,1fr));}}
+    @media (max-width: 520px){.kbd{grid-template-columns: repeat(6, minmax(0,1fr));}}
+
+    .key{
+      user-select:none;text-align:center;padding:10px 6px;
+      border-radius: 12px;border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      font-family: var(--ipa);font-size:18px;
+      cursor:pointer;transition:.12s transform ease, .12s filter ease;
+    }
+    .key:hover{filter:brightness(1.15)}
+    .key:active{transform: translateY(1px)}
+    .key.small{font-size:14px}
+
+    .twoCol{display:grid;grid-template-columns: 1fr 1fr;gap:10px}
+    @media (max-width: 520px){.twoCol{grid-template-columns:1fr}}
+
+    .tag{
+      display:inline-block;font-size:12px;padding:6px 10px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      color:var(--muted);
+    }
+    .kbdTitle{display:flex;align-items:center;justify-content:space-between;gap:12px}
+
+    .footer{
+      margin-top:14px;
+      display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;
+      color:var(--muted);font-size:12px
+    }
+    code{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <div class="title">
+        <h1>Pràctica de fonètica — Transcripció IPA (català)</h1>
+        <p>Paraules reals del Viccionari + solució IPA automàtica (Wiktionary ca-IPA). Sense servidor, GitHub Pages friendly.</p>
+      </div>
+      <div class="author">Autor: <b>WyZeR</b></div>
+    </header>
+
+    <div class="grid">
+      <!-- ESQUERRA -->
+      <section class="card">
+        <div class="hd">
+          <div class="left">
+            <div class="ttl">La paraula a transcriure</div>
+            <div class="sub">Escriu la transcripció i clica <b>Corregir</b>. Pots inserir símbols amb el teclat IPA.</div>
+          </div>
+          <div class="rightTop">
+            <span class="pill" id="pillMode">Mode: —</span>
+            <span class="pill" id="pillPool">Pool: —</span>
+            <span class="pill" id="pillUsed">Usades: —</span>
+          </div>
+        </div>
+
+        <div class="bd">
+          <div class="bigWord"><div class="w" id="word">—</div></div>
+
+          <div class="controls" style="margin-top:14px">
+            <select id="dialect">
+              <option value="central">Dialecte objectiu: Central/Balear (oriental)</option>
+              <option value="valencian">Dialecte objectiu: Valencià</option>
+              <option value="both">Mostra tots (Central/Balear + Valencià)</option>
+            </select>
+
+            <button id="btnNew">Nova paraula</button>
+            <button id="btnReset" class="btnGhost" title="Reinicia pool = torna a permetre repeticions i buida l'historial de paraules usades.">
+              Reinicia pool
+            </button>
+          </div>
+
+          <div class="sep"></div>
+
+          <label class="smallNote">Transcripció (IPA):</label>
+          <input id="ipa" class="ipaInput monoIPA" autocomplete="off" spellcheck="false" placeholder="Ex: [kəˈtaː]" />
+
+          <div class="row" style="margin-top:10px">
+            <button id="btnCheck">Corregir</button>
+            <button id="btnReveal" class="btnGhost">Mostra solució</button>
+            <button id="btnClear" class="btnGhost">Neteja</button>
+          </div>
+
+          <div id="feedback" class="msg" style="display:none"></div>
+          <div class="sourceLine" id="sourceLine"></div>
+
+          <div class="sep"></div>
+
+          <div class="smallNote">
+            <b>Online:</b> consulta Viccionari (paraules) i Wiktionary ca-IPA (solució). Si falla Internet, entra en mode offline.
+          </div>
+
+          <div class="footer">
+            <div>Versió: <span id="ver">v2-pages-fix</span></div>
+            <div>Truc: obre amb <code>?v=2</code> si tens caché</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- DRETA -->
+      <aside class="card">
+        <div class="hd">
+          <div class="left">
+            <div class="ttl kbdTitle">
+              <span>Teclat IPA català</span>
+              <span class="tag monoIPA">ɱ inclosa</span>
+            </div>
+            <div class="sub">Clica un símbol per inserir-lo. (Normalitzem per evitar errors de fonts)</div>
+          </div>
+        </div>
+        <div class="bd">
+          <div class="kbd" id="kbd"></div>
+
+          <div class="sep"></div>
+
+          <div class="twoCol">
+            <button class="btnGhost" id="btnBksp">⌫ Esborrar</button>
+            <button class="btnGhost" id="btnSpace">Espai</button>
+          </div>
+
+          <div class="sep"></div>
+
+          <div class="smallNote">
+            <b>Ela geminada (l·l):</b> sovint <span class="monoIPA">[lː]</span> o <span class="monoIPA">[l.l]</span>, segons criteri.
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
 <script>
+/* ========== PROTECCIÓ ANTI-PÀGINA EN BLANC ========== */
+window.addEventListener("error", (e)=>{
+  document.body.innerHTML =
+    "<pre style='color:white;padding:20px;background:#111;white-space:pre-wrap'>" +
+    "ERROR JS: " + (e.message || e.error) + "</pre>";
+});
+window.addEventListener("unhandledrejection", (e)=>{
+  document.body.innerHTML =
+    "<pre style='color:white;padding:20px;background:#111;white-space:pre-wrap'>" +
+    "PROMESA FALLADA: " + (e.reason?.message || e.reason) + "</pre>";
+});
+
+/* ====================== APP ====================== */
 const $ = (id)=>document.getElementById(id);
 
 const STORAGE = {
@@ -14,7 +310,6 @@ const STATE = {
   used: new Set(),
   contByCat: {},
   onlineOk: true,
-  lastSource: "",
 };
 
 const CATEGORIES = [
@@ -67,11 +362,14 @@ function normalizeIPA(s){
   return x;
 }
 
+/* Evitem /\p{M}/u per compatibilitat: usem rang U+0300..U+036F */
 function segmentIPA(s){
   const str = normalizeIPA(s);
   const out = [];
-  for (const ch of str){
-    if(/\p{M}/u.test(ch)){
+  for (let i=0;i<str.length;i++){
+    const code = str.charCodeAt(i);
+    const ch = str[i];
+    if (code >= 0x0300 && code <= 0x036F){
       if(out.length) out[out.length-1] += ch;
       else out.push(ch);
     } else out.push(ch);
@@ -99,7 +397,6 @@ function simpleDiff(a,b){
 }
 
 async function mwFetch(apiBase, params){
-  // GitHub Pages → fetch CORS amb origin=*
   params.origin = "*";
   params.format = "json";
   const url = apiBase + "?" + new URLSearchParams(params).toString();
@@ -129,14 +426,12 @@ async function fetchMoreWords(){
   if(next) STATE.contByCat[cat] = next;
   else delete STATE.contByCat[cat];
 
-  let added = 0;
   for(const it of cm){
     const t = it?.title;
     if(!looksLikeCatalanWord(t)) continue;
     if(STATE.used.has(t)) continue;
     if(STATE.pool.includes(t)) continue;
     STATE.pool.push(t);
-    added++;
   }
   saveState();
   updatePills();
@@ -156,6 +451,7 @@ async function fetchIPA(word){
 
   const box = document.createElement("div");
   box.innerHTML = html;
+
   const ipaSpans = [...box.querySelectorAll(".IPA")];
   if(ipaSpans.length === 0) throw new Error("No s'ha trobat IPA a la resposta");
 
@@ -167,7 +463,7 @@ async function fetchIPA(word){
     else if(!central) central = ipa;
   }
 
-  return { central, valencian, rawHtml: html, source: "Wiktionary (Template:ca-IPA)" };
+  return { central, valencian, source: "Wiktionary (Template:ca-IPA)" };
 }
 
 function updatePills(){
@@ -216,29 +512,25 @@ function buildHints(user, exp){
   const u = normalizeIPA(user);
   const e = normalizeIPA(exp);
 
-  const userHasStress = /[ˈˌ]/.test(u);
-  const expHasStress  = /[ˈˌ]/.test(e);
-  if(expHasStress && !userHasStress) hints.push("T’has deixat la marca d’accent (<span class='monoIPA'>ˈ</span>/<span class='monoIPA'>ˌ</span>).");
-
-  if(e.includes("ə") && !u.includes("ə")) hints.push("Falta <span class='monoIPA'>ə</span> (vocal neutra) — habitual en àtones (central/balear).");
-  if(u.includes("ə") && !e.includes("ə")) hints.push("Has posat <span class='monoIPA'>ə</span> però la solució esperada no en porta (pot ser vocal/dialecte).");
-
+  if(/[ˈˌ]/.test(e) && !/[ˈˌ]/.test(u)) hints.push("T’has deixat la marca d’accent (<span class='monoIPA'>ˈ</span>/<span class='monoIPA'>ˌ</span>).");
+  if(e.includes("ə") && !u.includes("ə")) hints.push("Falta <span class='monoIPA'>ə</span> (vocal neutra) — típica en àtones (central/balear).");
   if(e.includes("ɾ") && !u.includes("ɾ") && u.includes("r")) hints.push("Atenció <span class='monoIPA'>ɾ</span> (simple) vs <span class='monoIPA'>r</span> (múltiple).");
   if(e.includes("ʎ") && !u.includes("ʎ")) hints.push("Falta <span class='monoIPA'>ʎ</span> (ll).");
   if(e.includes("ɲ") && !u.includes("ɲ")) hints.push("Falta <span class='monoIPA'>ɲ</span> (ny).");
 
   const d = simpleDiff(e,u);
-  if(d.missing || d.extra){
-    if(d.missing) hints.push(`Falten: <span class="monoIPA">"${d.missing}"</span>`);
-    if(d.extra) hints.push(`Sobra: <span class="monoIPA">"${d.extra}"</span>`);
-  }
+  if(d.missing) hints.push(`Falten: <span class="monoIPA">"${d.missing}"</span>`);
+  if(d.extra) hints.push(`Sobra: <span class="monoIPA">"${d.extra}"</span>`);
+
   return [...new Set(hints)].slice(0,6);
 }
 
 async function ensureWord(){
   if(STATE.pool.length < 20 && STATE.onlineOk){
-    try{ await fetchMoreWords(); } catch { STATE.onlineOk = false; updatePills(); }
+    try{ await fetchMoreWords(); }
+    catch{ STATE.onlineOk = false; updatePills(); }
   }
+
   if(STATE.pool.length === 0){
     for(const w of OFFLINE_WORDS) if(!STATE.used.has(w)) STATE.pool.push(w);
     STATE.onlineOk = false;
@@ -332,7 +624,7 @@ function resetPool(){
   showFeedback("warn","Pool reiniciat","He esborrat l’historial de paraules usades.");
 }
 
-/** Teclat (igual que tenies) */
+/* ===== Teclat IPA ===== */
 const IPA_KEYS = [
   {k:"[", t:"["},{k:"]", t:"]"},{k:".", t:"."},{k:"ˈ", t:"ˈ"},{k:"ˌ", t:"ˌ"},{k:"ː", t:"ː"},
   {k:"‿", t:"‿", small:true},
@@ -358,6 +650,11 @@ function insertAtCursor(input, text){
 
 function buildKeyboard(){
   const host = $("kbd");
+  if(!host){
+    showFeedback("warn","Error de pàgina",
+      "No trobo el contenidor del teclat (<code>#kbd</code>). Assegura't que has pujat aquest <code>index.html</code> i no un altre fitxer.");
+    return;
+  }
   host.innerHTML = "";
   for(const it of IPA_KEYS){
     const d = document.createElement("div");
@@ -390,17 +687,17 @@ function wire(){
   });
 
   $("btnSpace").addEventListener("click", ()=> insertAtCursor($("ipa"), " "));
-
-  $("ipa").addEventListener("keydown", (e)=>{
-    if(e.key === "Enter"){ e.preventDefault(); check(); }
-  });
+  $("ipa").addEventListener("keydown", (e)=>{ if(e.key === "Enter"){ e.preventDefault(); check(); }});
 }
 
-(function init(){
+/* ✅ IMPORTANT: esperem que el DOM existeixi (evita #kbd null) */
+document.addEventListener("DOMContentLoaded", ()=>{
   loadState();
   buildKeyboard();
   wire();
   updatePills();
   newWord();
-})();
+});
 </script>
+</body>
+</html>
